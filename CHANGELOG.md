@@ -6,6 +6,8 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [1.0.0] - 2026-10-17
 
+- Version inicial
+
 ### Added
 
 - Backend NestJS con arquitectura hexagonal.

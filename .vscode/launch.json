@@ -10,6 +10,7 @@
       "cwd": "${workspaceFolder}",
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
+      "autoAttachChildProcesses": false,
       "restart": true
     },
     {

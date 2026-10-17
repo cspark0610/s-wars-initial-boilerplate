@@ -2,6 +2,39 @@
 
 Este documento describe cómo fluyen los datos en cada endpoint de la API, capa por capa.
 
+## ¿Por qué arquitectura hexagonal?
+
+La arquitectura hexagonal (también conocida como "puertos y adaptadores") fue elegida porque este proyecto integra múltiples tecnologías que pueden cambiar o evolucionar de forma independiente: una base de datos PostgreSQL, un cliente HTTP hacia SWAPI, autenticación JWT, hashing de contraseñas y un framework web (NestJS + Fastify).
+
+### Principales beneficios para este caso
+
+1. **Independencia del framework web**  
+   La lógica de negocio vive en `domain/` y `application/`, sin depender de NestJS, Fastify ni de ningún detalle HTTP. Si en el futuro se decide cambiar a Express, GraphQL o incluso a una cola de mensajes, los casos de uso y servicios de dominio se mantienen intactos.
+
+2. **Persistencia intercambiable**  
+   El dominio define puertos (`UserRepository`, `MovieRepository`) y la implementación concreta usa TypeORM + PostgreSQL. Gracias a esto, los tests de integración y e2e pueden ejecutarse con SQLite en memoria sin modificar la lógica de negocio, y una futura migración a MongoDB o Prisma solo implicaría crear nuevos adaptadores.
+
+3. **Integraciones externas aisladas**  
+   SWAPI se consume a través del puerto `SwapiService` y la implementación `SwapiClient`. Esto permite mockear fácilmente la API externa en tests unitarios y cambiar de proveedor (por ejemplo, swapi.dev) sin tocar los casos de uso.
+
+4. **Testabilidad**  
+   Cada capa puede testearse de forma aislada:
+   - **Unitarios**: servicios de dominio y casos de uso con mocks de puertos.
+   - **Integración**: controllers con base de datos SQLite y adaptadores reales.
+   - **E2E**: flujo completo desde HTTP hasta la base de datos.
+
+5. **Separación de responsabilidades**  
+   - `domain/`: modelos, reglas de negocio, errores y contratos (puertos).
+   - `application/`: orquestación de casos de uso.
+   - `infrastructure/`: detalles técnicos como HTTP, persistencia, autenticación y logging.
+
+6. **Evita dependencias circulares y acoplamiento**  
+   La regla "el dominio no importa de infraestructura" garantiza que los modelos y servicios de negocio no se contaminen con anotaciones de frameworks, decorators de ORM ni detalles de serialización.
+
+### Resumen
+
+La arquitectura hexagonal resulta conveniente porque encapsula la complejidad de las integraciones (SWAPI, JWT, TypeORM) detrás de puertos bien definidos, permitiendo que el núcleo de negocio permanezca estable, testeable y desacoplado de cualquier librería o infraestructura específica.
+
 ## Stack y capas
 
 ```

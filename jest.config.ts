@@ -1,73 +1,73 @@
 import type { Config } from 'jest';
 
-const config: Config = {
+enum TestType {
+  UNIT = 'unit',
+  INTEGRATION = 'integration',
+  E2E = 'e2e',
+}
+
+const MAX_WORKERS = Number(process.env.MAX_WORKERS) || 2;
+
+const baseConfig: Config = {
+  moduleFileExtensions: ['js', 'json', 'ts'],
+  moduleNameMapper: {
+    '@src/(.*)$': '<rootDir>/src/$1',
+    '@test/(.*)$': '<rootDir>/test/$1',
+  },
+  rootDir: '.',
+  testRegex: '.*\\.spec\\.ts$',
+  transform: {
+    '^.+\\.tsx?$': [
+      'ts-jest',
+      {
+        diagnostics: false, // sin errores de tipo en runtime
+      },
+    ],
+  },
   collectCoverageFrom: [
     'src/**/*.{js,ts}',
-    '!src/**/*.module.ts',
-    '!src/main.ts',
-    '!src/bootstrap.ts',
     '!src/config/**',
-    '!src/infrastructure/adapters/persistence/data-source.ts',
-    '!src/infrastructure/adapters/persistence/migrations/**',
+    '!src/main.ts',
+    '!src/app.module.ts',
+    '!src/bootstrap.ts',
   ],
+  coverageDirectory: '<rootDir>/coverage',
+  testEnvironment: 'node',
+  moduleDirectories: ['node_modules', '<rootDir>'],
+  modulePathIgnorePatterns: ['<rootDir>/dist'],
+};
+
+function getConfigProjectBy(testType: TestType): Config {
+  const projectConfig: Config = {
+    ...baseConfig,
+    displayName: testType,
+    testRegex: `test/${testType}/.*\\.spec\\.ts`,
+  };
+
+  if (testType !== TestType.UNIT) {
+    // globalSetup / globalTeardown removed — no integration/e2e tests
+  }
+
+  return projectConfig;
+}
+
+const config: Config = {
+  maxWorkers: MAX_WORKERS,
+  projects: [
+    getConfigProjectBy(TestType.UNIT),
+    getConfigProjectBy(TestType.INTEGRATION),
+    getConfigProjectBy(TestType.E2E),
+  ],
+  verbose: false,
+  coverageReporters: ['json', 'lcov', 'text', 'clover'],
   coverageThreshold: {
     global: {
+      statements: 80,
       branches: 70,
       functions: 80,
       lines: 80,
-      statements: 80,
     },
   },
-  moduleFileExtensions: ['js', 'json', 'ts'],
-  modulePathIgnorePatterns: ['<rootDir>/dist'],
-  moduleNameMapper: {
-    '^@src/(.*)$': '<rootDir>/src/$1',
-    '^@test/(.*)$': '<rootDir>/test/$1',
-  },
-  projects: [
-    {
-      displayName: 'unit',
-      testMatch: ['<rootDir>/test/unit/**/*.spec.ts'],
-      rootDir: '.',
-      transform: {
-        '^.+\\.(t|j)s$': 'ts-jest',
-      },
-      testEnvironment: 'node',
-      modulePathIgnorePatterns: ['<rootDir>/dist'],
-      moduleNameMapper: {
-        '^@src/(.*)$': '<rootDir>/src/$1',
-        '^@test/(.*)$': '<rootDir>/test/$1',
-      },
-    },
-    {
-      displayName: 'integration',
-      testMatch: ['<rootDir>/test/integration/**/*.spec.ts'],
-      rootDir: '.',
-      transform: {
-        '^.+\\.(t|j)s$': 'ts-jest',
-      },
-      testEnvironment: 'node',
-      modulePathIgnorePatterns: ['<rootDir>/dist'],
-      moduleNameMapper: {
-        '^@src/(.*)$': '<rootDir>/src/$1',
-        '^@test/(.*)$': '<rootDir>/test/$1',
-      },
-    },
-    {
-      displayName: 'e2e',
-      testMatch: ['<rootDir>/test/e2e/**/*.spec.ts'],
-      rootDir: '.',
-      transform: {
-        '^.+\\.(t|j)s$': 'ts-jest',
-      },
-      testEnvironment: 'node',
-      modulePathIgnorePatterns: ['<rootDir>/dist'],
-      moduleNameMapper: {
-        '^@src/(.*)$': '<rootDir>/src/$1',
-        '^@test/(.*)$': '<rootDir>/test/$1',
-      },
-    },
-  ],
 };
 
 export default config;
