@@ -93,6 +93,16 @@ npm run swagger:build
 
 Genera el archivo `docs/swagger.json` en la raíz del proyecto, sin necesidad de tener PostgreSQL corriendo (usa SQLite en memoria durante la generación). Ese JSON contiene la especificación OpenAPI completa generada a partir de los decoradores Swagger de controladores, DTOs y responses.
 
+## Documentación y colecciones
+
+En la carpeta `docs/` se encuentran los siguientes archivos listos para usar:
+
+- **`docs/swagger.json`**  
+  Especificación OpenAPI generada automáticamente. Se puede importar en Postman, Swagger UI, Swagger Editor o cualquier herramienta compatible con OpenAPI.
+
+- **`docs/star-wars-movies-api.postman_collection.json`**  
+  Colección de Postman con todos los endpoints configurados. Incluye las variables `baseUrl`, `token` y `movieId`; el request de login guarda automáticamente el token en la variable de colección para reutilizarlo en los demás endpoints.
+
 ## Tests
 
 ```bash
