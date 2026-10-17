@@ -1,0 +1,236 @@
+{
+  "info": {
+    "_postman_id": "star-wars-movies-api",
+    "name": "Star Wars Movies API",
+    "description": "Collection para probar localmente el backend Star Wars Movies API en http://localhost:3000",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Sign up admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"Password123\",\n  \"role\": \"ADMIN\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/sign-up",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "auth", "sign-up"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "pm.collectionVariables.set(\"token\", jsonData.access_token);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"Password123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "auth", "login"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Movies",
+      "item": [
+        {
+          "name": "Create movie",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"A New Hope\",\n  \"episodeId\": 4,\n  \"openingCrawl\": \"It is a period of civil war...\",\n  \"director\": \"George Lucas\",\n  \"producer\": \"Gary Kurtz\",\n  \"releaseDate\": \"1977-05-25\",\n  \"swapiUrl\": \"https://www.swapi.tech/api/films/1\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/movies",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "movies"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List movies",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/movies",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "movies"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get movie by id",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/movies/{{movieId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "movies", "{{movieId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update movie",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"A New Hope (Updated)\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/movies/{{movieId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "movies", "{{movieId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete movie",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/movies/{{movieId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "movies", "{{movieId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get SWAPI film 3",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/movies/swapi/3",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "movies", "swapi", "3"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Sync movies from SWAPI",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/movies/sync",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "movies", "sync"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "movieId",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

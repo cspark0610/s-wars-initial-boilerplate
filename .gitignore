@@ -1,0 +1,12 @@
+node_modules/
+dist
+coverage
+.env
+.env.*.local
+.vscode/*
+!.vscode/launch.json
+!.vscode/settings.json
+.idea
+*.log
+npm-debug.log*
+.DS_Store

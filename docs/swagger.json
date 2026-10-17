@@ -1,0 +1,651 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/v1/auth/sign-up": {
+      "post": {
+        "description": "Crea una cuenta de usuario en el sistema. El email debe ser único. Si no se indica rol, se asigna REGULAR por defecto. Devuelve un JWT de acceso.",
+        "operationId": "MoviesController_signUp",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SignUpBodyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Usuario registrado correctamente. Retorna el token de acceso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Registrar un nuevo usuario",
+        "tags": [
+          "Movies"
+        ]
+      }
+    },
+    "/v1/auth/login": {
+      "post": {
+        "description": "Autentica un usuario existente mediante email y contraseña. Si las credenciales son válidas, devuelve un JWT con los claims del usuario.",
+        "operationId": "MoviesController_login",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginBodyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Autenticación exitosa. Retorna el token de acceso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Credenciales inválidas o usuario no encontrado."
+          }
+        },
+        "summary": "Iniciar sesión",
+        "tags": [
+          "Movies"
+        ]
+      }
+    },
+    "/v1/movies": {
+      "get": {
+        "description": "Obtiene un listado paginado de las películas almacenadas en la base de datos. Se puede controlar la página y el tamaño mediante query params.",
+        "operationId": "MoviesController_listMovies",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Número de página a consultar.",
+            "schema": {
+              "default": 1,
+              "example": 1,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Cantidad de elementos por página. Máximo 100.",
+            "schema": {
+              "default": 10,
+              "example": 10,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Listado de películas con metadatos de paginación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MovieListResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token ausente, expirado o inválido."
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Listar películas",
+        "tags": [
+          "Movies"
+        ]
+      },
+      "post": {
+        "description": "Registra una nueva película en el sistema. El campo episodeId debe ser único. Requiere rol ADMIN.",
+        "operationId": "MoviesController_createMovie",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateMovieBodyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Película creada correctamente.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MovieResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token ausente, expirado o inválido."
+          },
+          "403": {
+            "description": "El usuario no posee el rol ADMIN necesario."
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Crear una película",
+        "tags": [
+          "Movies"
+        ]
+      }
+    },
+    "/v1/movies/{id}": {
+      "get": {
+        "description": "Recupera la información completa de una película a partir de su identificador UUID.",
+        "operationId": "MoviesController_getMovie",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Identificador único de la película (UUID v4).",
+            "schema": {
+              "example": "550e8400-e29b-41d4-a716-446655440000",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detalle de la película solicitada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MovieResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token ausente, expirado o inválido."
+          },
+          "404": {
+            "description": "No existe una película con el id proporcionado."
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Obtener detalle de una película",
+        "tags": [
+          "Movies"
+        ]
+      },
+      "patch": {
+        "description": "Modifica uno o más campos de una película identificada por su UUID. Solo se actualizan los campos enviados en el body. Requiere rol ADMIN.",
+        "operationId": "MoviesController_updateMovie",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Identificador único de la película (UUID v4).",
+            "schema": {
+              "example": "550e8400-e29b-41d4-a716-446655440000",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateMovieBodyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Película actualizada correctamente.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MovieResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token ausente, expirado o inválido."
+          },
+          "403": {
+            "description": "El usuario no posee el rol ADMIN necesario."
+          },
+          "404": {
+            "description": "No existe una película con el id proporcionado."
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Actualizar una película",
+        "tags": [
+          "Movies"
+        ]
+      },
+      "delete": {
+        "description": "Elimina permanentemente una película del sistema a partir de su UUID. Requiere rol ADMIN.",
+        "operationId": "MoviesController_deleteMovie",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Identificador único de la película (UUID v4).",
+            "schema": {
+              "example": "550e8400-e29b-41d4-a716-446655440000",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Película eliminada correctamente."
+          },
+          "401": {
+            "description": "Token ausente, expirado o inválido."
+          },
+          "403": {
+            "description": "El usuario no posee el rol ADMIN necesario."
+          },
+          "404": {
+            "description": "No existe una película con el id proporcionado."
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Eliminar una película",
+        "tags": [
+          "Movies"
+        ]
+      }
+    },
+    "/v1/movies/swapi/{uid}": {
+      "get": {
+        "description": "Consulta la API pública de Star Wars (SWAPI) en https://www.swapi.tech/api/films/{uid} y devuelve los datos mapeados al dominio de la aplicación.",
+        "operationId": "MoviesController_getSwapiFilm",
+        "parameters": [
+          {
+            "name": "uid",
+            "required": true,
+            "in": "path",
+            "description": "Identificador único del recurso films en SWAPI (uid).",
+            "schema": {
+              "example": "3",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Datos de la película obtenidos desde SWAPI."
+          },
+          "401": {
+            "description": "Token ausente, expirado o inválido."
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Obtener película de SWAPI por uid",
+        "tags": [
+          "Movies"
+        ]
+      }
+    },
+    "/v1/movies/sync": {
+      "post": {
+        "description": "Obtiene todas las películas disponibles en SWAPI y las almacena en la base de datos local. Las películas cuyo episodeId ya existan son omitidas. Requiere rol ADMIN.",
+        "operationId": "MoviesController_syncMovies",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Resultado de la sincronización con cantidad de creadas y omitidas."
+          },
+          "401": {
+            "description": "Token ausente, expirado o inválido."
+          },
+          "403": {
+            "description": "El usuario no posee el rol ADMIN necesario."
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Sincronizar películas desde SWAPI",
+        "tags": [
+          "Movies"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "Star Wars Movies API",
+    "description": "Backend hexagonal para gestión de películas Star Wars con integración SWAPI",
+    "version": "1.0.0",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "securitySchemes": {
+      "access-token": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http"
+      }
+    },
+    "schemas": {
+      "SignUpBodyDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "admin@example.com",
+            "description": "Correo electrónico del usuario. Debe ser único en el sistema."
+          },
+          "password": {
+            "type": "string",
+            "example": "Password123",
+            "description": "Contraseña del usuario. Mínimo 6 caracteres."
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "REGULAR",
+              "ADMIN"
+            ],
+            "example": "ADMIN",
+            "description": "Rol asignado al usuario. Valores permitidos: REGULAR o ADMIN. Por defecto REGULAR."
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "AuthResponse": {
+        "type": "object",
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "description": "Token JWT de acceso. Se debe enviar en el header Authorization como Bearer.",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM0NTY3ODkwIiwicm9sZSI6IkFETUlOIn0.signature"
+          }
+        },
+        "required": [
+          "access_token"
+        ]
+      },
+      "LoginBodyDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "admin@example.com",
+            "description": "Correo electrónico registrado en el sistema."
+          },
+          "password": {
+            "type": "string",
+            "example": "Password123",
+            "description": "Contraseña asociada a la cuenta."
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "Object": {
+        "type": "object",
+        "properties": {}
+      },
+      "MovieResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Identificador único de la película.",
+            "example": "550e8400-e29b-41d4-a716-446655440000"
+          },
+          "title": {
+            "type": "string",
+            "description": "Título de la película.",
+            "example": "A New Hope"
+          },
+          "episodeId": {
+            "type": "number",
+            "description": "Número de episodio.",
+            "example": 4
+          },
+          "openingCrawl": {
+            "type": "string",
+            "description": "Texto de apertura de la película.",
+            "example": "It is a period of civil war..."
+          },
+          "director": {
+            "type": "string",
+            "description": "Director de la película.",
+            "example": "George Lucas"
+          },
+          "producer": {
+            "type": "string",
+            "description": "Productor de la película.",
+            "example": "Gary Kurtz"
+          },
+          "releaseDate": {
+            "type": "string",
+            "description": "Fecha de estreno.",
+            "example": "1977-05-25"
+          },
+          "swapiUrl": {
+            "type": "string",
+            "description": "URL original del recurso en SWAPI.",
+            "example": "https://www.swapi.tech/api/films/1"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Fecha de creación del registro."
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Fecha de última actualización del registro."
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "episodeId",
+          "openingCrawl",
+          "director",
+          "producer",
+          "releaseDate",
+          "swapiUrl",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "MovieListResponse": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "description": "Lista de películas de la página solicitada.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MovieResponse"
+            }
+          },
+          "total": {
+            "type": "number",
+            "description": "Cantidad total de películas disponibles.",
+            "example": 6
+          },
+          "page": {
+            "type": "number",
+            "description": "Página actual.",
+            "example": 1
+          },
+          "limit": {
+            "type": "number",
+            "description": "Tamaño de página.",
+            "example": 10
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "page",
+          "limit"
+        ]
+      },
+      "CreateMovieBodyDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "example": "A New Hope",
+            "description": "Título de la película."
+          },
+          "episodeId": {
+            "type": "number",
+            "example": 4,
+            "description": "Número de episodio de la película. Debe ser único en el sistema."
+          },
+          "openingCrawl": {
+            "type": "string",
+            "example": "It is a period of civil war...",
+            "description": "Texto de apertura (opening crawl) de la película."
+          },
+          "director": {
+            "type": "string",
+            "example": "George Lucas",
+            "description": "Director de la película."
+          },
+          "producer": {
+            "type": "string",
+            "example": "Gary Kurtz",
+            "description": "Productor de la película."
+          },
+          "releaseDate": {
+            "type": "string",
+            "example": "1977-05-25",
+            "description": "Fecha de estreno de la película en formato ISO 8601 (YYYY-MM-DD)."
+          },
+          "swapiUrl": {
+            "type": "string",
+            "example": "https://www.swapi.tech/api/films/1",
+            "description": "URL original del recurso en SWAPI. Se utiliza para trazabilidad."
+          }
+        },
+        "required": [
+          "title",
+          "episodeId",
+          "openingCrawl",
+          "director",
+          "producer",
+          "releaseDate"
+        ]
+      },
+      "UpdateMovieBodyDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "example": "A New Hope",
+            "description": "Nuevo título de la película."
+          },
+          "episodeId": {
+            "type": "number",
+            "example": 4,
+            "description": "Nuevo número de episodio."
+          },
+          "openingCrawl": {
+            "type": "string",
+            "example": "It is a period of civil war...",
+            "description": "Nuevo texto de apertura."
+          },
+          "director": {
+            "type": "string",
+            "example": "George Lucas",
+            "description": "Nuevo director de la película."
+          },
+          "producer": {
+            "type": "string",
+            "example": "Gary Kurtz",
+            "description": "Nuevo productor de la película."
+          },
+          "releaseDate": {
+            "type": "string",
+            "example": "1977-05-25",
+            "description": "Nueva fecha de estreno en formato ISO 8601."
+          },
+          "swapiUrl": {
+            "type": "string",
+            "example": "https://www.swapi.tech/api/films/1",
+            "description": "Nueva URL del recurso en SWAPI."
+          }
+        }
+      }
+    }
+  }
+}

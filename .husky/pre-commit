@@ -1,0 +1,25 @@
+#!/usr/bin/env sh
+
+echo "==> Running pre-commit checks..."
+
+echo "[0/4] Lock file sync check"
+if git diff --cached --name-only | grep -Eq '(^|/)(package\.json|package-lock\.json)$'; then
+  npm install --package-lock-only --ignore-scripts || { echo "❌ Lock sync failed"; exit 1; }
+  git diff --exit-code -- package-lock.json || { echo "❌ package-lock.json out of sync. Run 'npm install' and stage the lock file."; exit 1; }
+else
+  echo "ℹ️ No package manifest changes detected, skipping lock sync check"
+fi
+
+echo "[1/4] Lint (staged files)"
+npx lint-staged || { echo "❌ Lint failed"; exit 1; }
+
+echo "[2/4] NPM audit (critical only)"
+npm run audit:check-severity || { echo "❌ NPM audit check failed"; exit 1; }
+
+echo "[3/4] TypeScript type-check"
+npx tsc --noEmit || { echo "❌ Type-check failed"; exit 1; }
+
+echo "[4/4] Unit tests"
+npm run test:unit || { echo "❌ Unit tests failed"; exit 1; }
+
+echo "✅ All checks passed"
